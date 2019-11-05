@@ -1,8 +1,8 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.WebJobs;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Azure.WebJobs.Extensions.Http;
-using Microsoft.Extensions.Logging;
 using Microsoft.WindowsAzure.Storage.Queue;
 
 namespace DeviceOfflineDetection
@@ -12,29 +12,22 @@ namespace DeviceOfflineDetection
         [FunctionName(nameof(QueueTrigger))]
         public static async Task QueueTrigger(
             [QueueTrigger("device-messages", Connection = "AzureWebJobsStorage")] CloudQueueMessage message,
-            [DurableClient] IDurableEntityClient durableEntityClient,
-            ILogger log)
+            [DurableClient] IDurableEntityClient durableEntityClient)
         {
-            log.LogInformation($"Receiving message for device {message.AsString}");
-
-            var entity = new EntityId(nameof(DeviceEntity), message.AsString);
+            string deviceId = message.AsString;
+            var entity = new EntityId(nameof(DeviceEntity), deviceId);
             await durableEntityClient.SignalEntityAsync(entity, nameof(DeviceEntity.MessageReceived));
         }
 
         [FunctionName(nameof(HandleOfflineMessage))]
         public static async Task HandleOfflineMessage(
             [DurableClient] IDurableEntityClient durableEntityClient,
-            [QueueTrigger("timeoutQueue", Connection = "AzureWebJobsStorage")]CloudQueueMessage message, 
-            ILogger log
+            [QueueTrigger("timeoutQueue", Connection = "AzureWebJobsStorage")]CloudQueueMessage message
             )
         {
             var deviceId = message.AsString;
-
             var entity = new EntityId(nameof(DeviceEntity), deviceId);
             await durableEntityClient.SignalEntityAsync(entity, nameof(DeviceEntity.DeviceTimeout));
-            
-            log.LogInformation($"Device ${deviceId} if now offline");
-            log.LogMetric("offline", 1);
         }
 
         [FunctionName(nameof(GetStatus))]
@@ -44,7 +37,6 @@ namespace DeviceOfflineDetection
         {
             var entity = new EntityId(nameof(DeviceEntity), args.DeviceId);
             var device = await durableEntityClient.ReadEntityStateAsync<DeviceEntity>(entity);
-
             return new OkObjectResult(device);
         }
     }

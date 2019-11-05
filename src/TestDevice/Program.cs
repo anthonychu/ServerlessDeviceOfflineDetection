@@ -50,7 +50,7 @@ namespace TestDevice
 
                         Console.WriteLine($"{DateTime.Now:G} Send messages to {devicesCount} Devices in {duration}");
 
-                        if (duration < TimeSpan.FromSeconds(10))
+                        if (duration < TimeSpan.FromSeconds(7))
                         {
                             try
                             {

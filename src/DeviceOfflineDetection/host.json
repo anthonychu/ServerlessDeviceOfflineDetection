@@ -2,17 +2,19 @@
   "version": "2.0",
   "extensions": {
     "durableTask": {
-      "hubName": "Devices",
+      "hubName": "Devices"
+      ,
       "storageProvider": {
-        "azureStorage": {
-          "connectionStringName": "DurableFunctionsStorageAccount",
-          "partitionCount": 15,
-          "extendedSessionsEnabled": true,
-          "extendedSessionIdleTimeoutInSeconds": 30,
-          "maxConcurrentActivityFunctions": 250,
-          "maxConcurrentOrchestratorFunctions": 250
-        }
-      }
+        "partitionCount": 15,
+        "connectionStringName": "DurableFunctionsStorageAccount"
+      },
+      "extendedSessionsEnabled": true,
+      "extendedSessionIdleTimeoutInSeconds": 30,
+      "maxConcurrentActivityFunctions": 250,
+      "maxConcurrentOrchestratorFunctions": 250
+    },
+    "queues": {
+      "maxPollingInterval": "00:00:10"
     }
   }
 }
